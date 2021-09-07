@@ -44,7 +44,8 @@ client.connect((err) => {
     const file = req.files.file;
     const name = req.body.name;
     const textarea = req.body.textarea;
-    const price = req.body.price;
+    const author = req.body.author;
+    const category = req.body.category;
 
     const newImg = file.data;
     const encImg = newImg.toString("base64");
@@ -55,7 +56,7 @@ client.connect((err) => {
       img: Buffer.from(encImg, "base64"),
     };
     newsCollection
-      .insertOne({ name, textarea, price, image })
+      .insertOne({ name, textarea, author, image, category })
       .then((result) => {
         res.send(result.insertedCount > 0);
       });
