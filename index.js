@@ -37,7 +37,7 @@ const client = new MongoClient(uri, {
 });
 client.connect((err) => {
   const newsCollection = client.db("news").collection("news");
-  const ordersCollection = client.db("news").collection("orders");
+  const topNewsCollection = client.db("news").collection("topNews");
   const adminCollection = client.db("news").collection("admin");
 
   app.post("/news", (req, res) => {
@@ -80,6 +80,48 @@ client.connect((err) => {
       res.send(items);
     });
   });
+
+  app.post("/topNews", (req, res) => {
+    const file = req.files.file;
+    const name = req.body.name;
+    const textarea = req.body.textarea;
+    const author = req.body.author;
+    const category = req.body.category;
+
+    const newImg = file.data;
+    const encImg = newImg.toString("base64");
+
+    var image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(encImg, "base64"),
+    };
+    topNewsCollection
+      .insertOne({ name, textarea, author, image, category })
+      .then((result) => {
+        res.send(result.insertedCount > 0);
+      });
+  });
+  app.get("/topNews", (req, res) => {
+    topNewsCollection.find({}).toArray((err, documents) => {
+      res.send(documents);
+    });
+  });
+
+  app.delete("/delete/:id", (req, res) => {
+    const id = ObjectID(req.params.id);
+    topNewsCollection.findOneAndDelete({ _id: id }).then((result) => {
+      res.send(!!result.value);
+    });
+  });
+
+  app.get("/topNews/:id", (req, res) => {
+    const id = ObjectID(req.params.id);
+    topNewsCollection.find({ _id: id }).toArray((err, items) => {
+      res.send(items);
+    });
+  });
+
 
   app.post("/admin", (req, res) => {
     const order = req.body;
