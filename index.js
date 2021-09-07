@@ -38,6 +38,7 @@ const client = new MongoClient(uri, {
 client.connect((err) => {
   const newsCollection = client.db("news").collection("news");
   const topNewsCollection = client.db("news").collection("topNews");
+  const sidebarNewsCollection = client.db("news").collection("sidebarNews");
   const adminCollection = client.db("news").collection("admin");
 
   app.post("/news", (req, res) => {
@@ -118,6 +119,47 @@ client.connect((err) => {
   app.get("/topNews/:id", (req, res) => {
     const id = ObjectID(req.params.id);
     topNewsCollection.find({ _id: id }).toArray((err, items) => {
+      res.send(items);
+    });
+  });
+
+  app.post("/sidebarNews", (req, res) => {
+    const file = req.files.file;
+    const name = req.body.name;
+    const textarea = req.body.textarea;
+    const author = req.body.author;
+    const category = req.body.category;
+
+    const newImg = file.data;
+    const encImg = newImg.toString("base64");
+
+    var image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(encImg, "base64"),
+    };
+    sidebarNewsCollection
+      .insertOne({ name, textarea, author, image, category })
+      .then((result) => {
+        res.send(result.insertedCount > 0);
+      });
+  });
+  app.get("/sidebarNews", (req, res) => {
+    sidebarNewsCollection.find({}).toArray((err, documents) => {
+      res.send(documents);
+    });
+  });
+
+  app.delete("/delete/:id", (req, res) => {
+    const id = ObjectID(req.params.id);
+    sidebarNewsCollection.findOneAndDelete({ _id: id }).then((result) => {
+      res.send(!!result.value);
+    });
+  });
+
+  app.get("/sidebarNews/:id", (req, res) => {
+    const id = ObjectID(req.params.id);
+    sidebarNewsCollection.find({ _id: id }).toArray((err, items) => {
       res.send(items);
     });
   });
